@@ -8,17 +8,15 @@ import { initializeApp } from "firebase/app";
 import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
 import { getStorage, ref, uploadString, getDownloadURL } from "firebase/storage";
 
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  // 🔧 TODO: Apna naya "Shauryastoysstore" Firebase project ka config
-  // Firebase Console → Project Settings → General → "Your apps" → SDK setup and configuration
-  // yahan se copy-paste karo:
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.firebasestorage.app",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID",
-  measurementId: "YOUR_MEASUREMENT_ID"
+  apiKey: "AIzaSyCc3Biv2uVjzDTFPr9ouFe2WL-KAw1ieOA",
+  authDomain: "shaurya-s-toys-store.firebaseapp.com",
+  projectId: "shaurya-s-toys-store",
+  storageBucket: "shaurya-s-toys-store.firebasestorage.app",
+  messagingSenderId: "832664456608",
+  appId: "1:832664456608:web:7fd6cc1ff0d2936757e8c5",
+  measurementId: "G-86L8EDT4DY"
 };
 
 const firebaseApp = initializeApp(firebaseConfig);
