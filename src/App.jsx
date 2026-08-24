@@ -583,7 +583,7 @@ export default function ApniDukanApp() {
   return (
     <div style={styles.appShell} className="app-shell">
       <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Noto+Sans+Gujarati:wght@400;600;700;800&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Hind+Vadodara:wght@400;500;600;700&family=Noto+Sans+Gujarati:wght@400;600;700;800&display=swap" rel="stylesheet" />
       <style>{`
 @media (max-width:480px){
   .app-shell{padding:0 !important;}
@@ -591,7 +591,11 @@ export default function ApniDukanApp() {
 }`}</style>
       <div style={styles.phoneFrame} className="phone-frame">
         {/* TOP BAR */}
-        <div style={styles.hazardStrip} />
+        <div style={styles.hazardStrip}>
+          {[T.orange, T.marigold, T.green, T.orange, T.marigold, T.green, T.orange, T.marigold].map((c, i) => (
+            <div key={i} style={{ ...styles.hazardBlock, background: c }} />
+          ))}
+        </div>
         <div style={styles.topBar}>
           <TopBarNature />
           <div style={styles.brandRow}>
@@ -850,7 +854,7 @@ export default function ApniDukanApp() {
           <div style={styles.scrollArea}>
             <div style={{ padding: 16 }}>
               <button style={{ ...styles.primaryBtn, marginTop: 0, marginBottom: 16 }} onClick={importSeedCatalog} disabled={saving}>
-                {saving ? "લોડ થાય છે..." : "Taparia Handtools કેટલોગ લોડ/અપડેટ કરો"}
+                {saving ? "લોડ થાય છે..." : "ડિફોલ્ટ ટોય કેટલોગ લોડ/અપડેટ કરો"}
               </button>
               <div style={styles.adminSectionTitle}><ClipboardList size={16} /> ઓર્ડર્સ ({orders.length})</div>
               {orders.length === 0 && <p style={{ color: "#a49c88", fontSize: 13 }}>હજુ કોઈ ઓર્ડર નથી.</p>}
@@ -1206,27 +1210,28 @@ export default function ApniDukanApp() {
   );
 }
 
-/* ---- design tokens: Tricolor theme (saffron - white - green) ---- */
+/* ---- design tokens: "Kite & Building Blocks" toy-shop theme ---- */
 const T = {
-  bg: "#FFF9F2",
+  bg: "#FFF7EA",
   surface: "#FFFFFF",
-  surface2: "#F5F5F0",
-  ink: "#0B1F4B",
-  inkSoft: "#48506B",
-  orange: "#FF9933",
-  orangeDeep: "#E67300",
-  green: "#138808",
-  greenDeep: "#0B5C05",
-  greenLight: "#E3F5DC",
-  greenLight2: "#C9EABD",
-  marigold: "#06038D",
-  hairline: "#E3DED0",
+  surface2: "#FCEFD8",
+  ink: "#232B54",
+  inkSoft: "#5D6088",
+  orange: "#FF6B4A",
+  orangeDeep: "#D94A2B",
+  green: "#1E9C90",
+  greenDeep: "#0F6E64",
+  greenLight: "#E4F5F1",
+  greenLight2: "#C3E9E1",
+  marigold: "#FFB627",
+  hairline: "#F0E2C4",
 };
 
 const styles = {
-  appShell: { minHeight: "100vh", width: "100%", background: `radial-gradient(circle at 15% 0%, #e3e0d3 0%, transparent 45%), ${T.bg}`, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Noto Sans Gujarati','Segoe UI',sans-serif", padding: "12px 0" },
+  appShell: { minHeight: "100vh", width: "100%", background: `radial-gradient(circle at 15% 0%, #e3e0d3 0%, transparent 45%), ${T.bg}`, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Hind Vadodara','Noto Sans Gujarati','Segoe UI',sans-serif", padding: "12px 0" },
   phoneFrame: { width: 390, maxWidth: "100%", height: 780, maxHeight: "95vh", background: T.surface, borderRadius: 28, overflow: "hidden", boxShadow: "0 20px 50px rgba(40,35,20,0.3)", display: "flex", flexDirection: "column", border: `6px solid ${T.ink}` },
-  hazardStrip: { height: 8, flexShrink: 0, background: `linear-gradient(90deg, ${T.orange} 0%, ${T.orange} 33%, #FFFFFF 33%, #FFFFFF 66%, ${T.green} 66%, ${T.green} 100%)` },
+  hazardStrip: { height: 9, flexShrink: 0, display: "flex", background: T.ink },
+  hazardBlock: { flex: 1, height: "100%" },
   topBar: { background: `linear-gradient(180deg, ${T.greenLight}, ${T.greenLight2})`, padding: "14px 16px 12px", position: "relative", overflow: "hidden", flexShrink: 0 },
   topBarLeaf: { position: "absolute", right: -10, top: -10, width: 130, height: 100, opacity: 0.85, pointerEvents: "none" },
   brandRow: { display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative" },
@@ -1243,7 +1248,7 @@ const styles = {
   searchWrap: { display: "flex", alignItems: "center", gap: 8, background: T.surface, border: `1.5px solid ${T.hairline}`, margin: "14px 16px 10px", padding: "10px 14px", borderRadius: 11 },
   searchInput: { border: "none", background: "transparent", outline: "none", fontSize: 14, flex: 1, color: T.ink, fontFamily: "inherit" },
   catRow: { display: "flex", gap: 8, padding: "0 16px 14px", overflowX: "auto" },
-  catChip: { flexShrink: 0, fontFamily: "'Oswald',sans-serif", border: `1px solid ${T.hairline}`, background: T.surface2, color: T.inkSoft, padding: "8px 14px 7px", borderRadius: "7px 7px 3px 3px", fontSize: 12, fontWeight: 600, letterSpacing: "0.03em", cursor: "pointer" },
+  catChip: { flexShrink: 0, fontFamily: "'Baloo 2',sans-serif", border: `1px solid ${T.hairline}`, background: T.surface2, color: T.inkSoft, padding: "8px 15px", borderRadius: 999, fontSize: 12, fontWeight: 600, letterSpacing: "0.03em", cursor: "pointer" },
   catChipActive: { background: T.ink, color: "#fff", borderColor: T.ink },
   missionStrip: { margin: "2px 16px 16px", background: `linear-gradient(120deg, ${T.green}, ${T.greenDeep})`, borderRadius: 13, padding: "13px 14px", display: "flex", alignItems: "center", gap: 12 },
   missionStamp: { width: 38, height: 38, borderRadius: "50%", border: `2px solid ${T.marigold}`, display: "flex", alignItems: "center", justifyContent: "center", color: T.marigold, fontSize: 16, flexShrink: 0, transform: "rotate(-6deg)" },
@@ -1251,15 +1256,15 @@ const styles = {
   missionText2: { color: "rgba(255,255,255,0.72)", fontSize: 10, marginTop: 2 },
   grid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, padding: "0 16px 20px" },
   card: { background: T.surface, borderRadius: 12, overflow: "hidden", border: `1px solid ${T.hairline}`, display: "flex", flexDirection: "column", position: "relative" },
-  cardImgWrap: { position: "relative", background: "linear-gradient(160deg, #ECE8DA, #DDD8C6)", display: "flex", alignItems: "center", justifyContent: "center", height: 84, overflow: "hidden", borderBottom: `1px dashed ${T.hairline}` },
+  cardImgWrap: { position: "relative", background: "linear-gradient(160deg, #FDEFD9, #F6DCB4)", display: "flex", alignItems: "center", justifyContent: "center", height: 84, overflow: "hidden", borderBottom: `1px dashed ${T.hairline}` },
   cardImg: { width: "100%", height: "100%", objectFit: "cover" },
   cardBody: { padding: "9px 10px 11px" },
-  cardCat: { fontFamily: "'Oswald',sans-serif", fontSize: 9.5, letterSpacing: "0.06em", textTransform: "uppercase", color: T.green, fontWeight: 700, marginBottom: 2 },
+  cardCat: { fontFamily: "'Baloo 2',sans-serif", fontSize: 9.5, letterSpacing: "0.06em", textTransform: "uppercase", color: T.green, fontWeight: 700, marginBottom: 2 },
   cardName: { fontSize: 13, fontWeight: 600, color: T.ink, lineHeight: 1.3, minHeight: 34 },
   cardBottomRow: { display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 6 },
-  cardPrice: { fontFamily: "'Oswald',sans-serif", fontSize: 14.5, fontWeight: 700, color: T.ink },
-  cardMrp: { fontFamily: "'Oswald',sans-serif", fontSize: 11, color: "#a39c8c", textDecoration: "line-through" },
-  discountBadge: { position: "absolute", top: 5, left: 5, background: T.green, color: "#fff", fontFamily: "'Oswald',sans-serif", fontSize: 9.5, fontWeight: 700, padding: "2px 5px", borderRadius: 4, letterSpacing: "0.02em" },
+  cardPrice: { fontFamily: "'Baloo 2',sans-serif", fontSize: 14.5, fontWeight: 700, color: T.ink },
+  cardMrp: { fontFamily: "'Baloo 2',sans-serif", fontSize: 11, color: "#a39c8c", textDecoration: "line-through" },
+  discountBadge: { position: "absolute", top: 5, left: 5, background: T.marigold, color: T.ink, fontFamily: "'Baloo 2',sans-serif", fontSize: 9.5, fontWeight: 700, padding: "2px 6px", borderRadius: 6, letterSpacing: "0.02em" },
   addBtn: { background: T.orange, color: "#fff", border: "none", borderRadius: 8, padding: "6px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 2px 0 ${T.orangeDeep}` },
   qtyControl: { display: "flex", alignItems: "center", gap: 6, background: T.ink, borderRadius: 8, padding: "3px 6px" },
   qtyBtn: { background: T.orange, border: "none", borderRadius: 5, width: 18, height: 18, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" },
@@ -1271,7 +1276,7 @@ const styles = {
   summaryBox: { background: T.surface2, margin: 16, padding: 16, borderRadius: 14, border: `1px solid ${T.hairline}` },
   summaryRow: { display: "flex", justifyContent: "space-between", fontSize: 13, color: T.inkSoft, marginBottom: 8 },
   summaryTotal: { fontSize: 15, fontWeight: 800, color: T.ink, borderTop: `1px solid ${T.hairline}`, paddingTop: 10, marginTop: 4 },
-  primaryBtn: { width: "100%", background: T.orange, color: "#fff", border: "none", borderRadius: 12, padding: "13px 0", fontSize: 14, fontWeight: 700, marginTop: 12, cursor: "pointer", fontFamily: "'Oswald',sans-serif", letterSpacing: "0.03em", boxShadow: `0 3px 0 ${T.orangeDeep}` },
+  primaryBtn: { width: "100%", background: T.orange, color: "#fff", border: "none", borderRadius: 12, padding: "13px 0", fontSize: 14, fontWeight: 700, marginTop: 12, cursor: "pointer", fontFamily: "'Baloo 2',sans-serif", letterSpacing: "0.03em", boxShadow: `0 3px 0 ${T.orangeDeep}` },
   label: { display: "block", fontSize: 12, fontWeight: 700, color: T.inkSoft, margin: "14px 0 6px" },
   textInput: { width: "100%", border: `1px solid ${T.hairline}`, background: "#fff", borderRadius: 10, padding: "11px 12px", fontSize: 13, color: T.ink, outline: "none", fontFamily: "inherit", boxSizing: "border-box" },
   payOptions: { display: "flex", gap: 8 },
@@ -1279,7 +1284,7 @@ const styles = {
   payChipActive: { background: T.ink, color: "#fff", borderColor: T.ink },
   successWrap: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 20px" },
   successIcon: { width: 64, height: 64, borderRadius: "50%", background: T.green, display: "flex", alignItems: "center", justifyContent: "center" },
-  adminSectionTitle: { display: "flex", alignItems: "center", gap: 6, fontWeight: 800, fontSize: 13, color: T.ink, marginBottom: 10, fontFamily: "'Oswald',sans-serif", textTransform: "uppercase", letterSpacing: "0.04em" },
+  adminSectionTitle: { display: "flex", alignItems: "center", gap: 6, fontWeight: 800, fontSize: 13, color: T.ink, marginBottom: 10, fontFamily: "'Baloo 2',sans-serif", textTransform: "uppercase", letterSpacing: "0.04em" },
   orderCard: { background: "#fff", border: `1px solid ${T.hairline}`, borderRadius: 12, padding: 10, marginBottom: 10 },
   orderTopRow: { display: "flex", justifyContent: "space-between", alignItems: "center" },
   orderStatusTag: { fontSize: 10, background: T.surface2, color: T.inkSoft, padding: "2px 8px", borderRadius: 999, fontWeight: 700 },
@@ -1289,23 +1294,22 @@ const styles = {
   productRow: { display: "flex", alignItems: "center", padding: "8px 0", borderBottom: `1px solid ${T.surface2}` },
 };
 
-/* small decorative tree/plant/flower illustration used in the top strip */
+/* signature illustration: a kite on a curved string, tying the toy-shop
+   identity to Gujarat's own kite-flying tradition — used in the top strip */
 function TopBarNature() {
   return (
     <svg style={styles.topBarLeaf} viewBox="0 0 160 120" fill="none">
-      <rect x="112" y="70" width="7" height="34" rx="2" fill="#7A5B3A" />
-      <circle cx="115" cy="55" r="26" fill="#4FA870" />
-      <circle cx="100" cy="65" r="18" fill="#3C8A5B" />
-      <circle cx="132" cy="66" r="19" fill="#5CB77E" />
-      <path d="M60 104c0-14 6-22 6-22s6 8 6 22" stroke="#2E6B3F" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-      <path d="M66 92c-8-2-12-9-12-9s9-2 15 3" fill="#5CB77E" />
-      <path d="M66 92c8-2 12-9 12-9s-9-2-15 3" fill="#4FA870" />
-      <circle cx="30" cy="80" r="4" fill="#D99B2B" />
-      <circle cx="22" cy="76" r="4" fill="#E8A33D" />
-      <circle cx="38" cy="76" r="4" fill="#E8A33D" />
-      <circle cx="26" cy="86" r="4" fill="#E8A33D" />
-      <circle cx="34" cy="86" r="4" fill="#E8A33D" />
-      <rect x="28.5" y="84" width="3" height="20" rx="1.5" fill="#2E6B3F" />
+      <path d="M20 118c14-30 34-46 46-70" stroke="#C9BB98" strokeWidth="1.3" fill="none" strokeLinecap="round" />
+      <g transform="translate(96,34) rotate(18)">
+        <path d="M0 -30 L24 0 L0 30 L-24 0 Z" fill="#FF6B4A" />
+        <path d="M0 -30 L24 0 L0 0 Z" fill="#FFB627" />
+        <path d="M0 30 L-24 0 L0 0 Z" fill="#1E9C90" />
+        <path d="M0 -30 L0 30 M-24 0 L24 0" stroke="#FFFFFF" strokeWidth="1.5" />
+        <path d="M0 30c-3 8 3 10 0 18c-3 8 3 10 0 18" stroke="#C9BB98" strokeWidth="1.3" fill="none" strokeLinecap="round" />
+      </g>
+      <circle cx="26" cy="24" r="3.5" fill="#FFB627" />
+      <circle cx="14" cy="40" r="3" fill="#FF6B4A" />
+      <circle cx="34" cy="46" r="2.6" fill="#1E9C90" />
     </svg>
   );
 }
