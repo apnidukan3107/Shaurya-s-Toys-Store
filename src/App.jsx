@@ -152,29 +152,42 @@ export default function ApniDukanApp() {
     (async () => {
       try {
         setLoading(true);
+        setLoadError("");
+        const timeout = (ms) =>
+          new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms));
+
         let prod = [];
+        let timedOut = false;
         try {
-          const res = await storageGet("products");
+          const res = await Promise.race([storageGet("products"), timeout(8000)]);
           prod = res ? JSON.parse(res.value) : [];
-        } catch {
+        } catch (e) {
+          if (e && e.message === "timeout") timedOut = true;
           prod = [];
         }
         if (!prod || prod.length === 0) {
           prod = SEED_PRODUCTS;
-          try {
-            await storageSet("products", JSON.stringify(prod));
-          } catch {}
+          if (!timedOut) {
+            try {
+              await Promise.race([storageSet("products", JSON.stringify(prod)), timeout(8000)]);
+            } catch {}
+          }
         }
         setProducts(prod);
 
         let cats = [];
         try {
-          const res3 = await storageGet("customCategories");
+          const res3 = await Promise.race([storageGet("customCategories"), timeout(8000)]);
           cats = res3 ? JSON.parse(res3.value) : [];
-        } catch {
+        } catch (e) {
+          if (e && e.message === "timeout") timedOut = true;
           cats = [];
         }
         setCustomCategories(cats || []);
+
+        if (timedOut) {
+          setLoadError("ડેટાબેઝ સાથે કનેક્ટ થવામાં તકલીફ થઈ (નેટવર્ક ધીમું અથવા બ્લોક છે). હાલ પુરાણું/ડિફોલ્ટ કેટલોગ બતાવ્યું છે — ફરી પ્રયત્ન કરો.");
+        }
       } catch (e) {
         setLoadError("ડેટા લોડ કરવામાં તકલીફ થઈ. ફરી પ્રયત્ન કરો.");
       } finally {
@@ -640,7 +653,17 @@ export default function ApniDukanApp() {
           )}
         </div>
 
-        {loadError && <div style={styles.errorBanner}>{loadError}</div>}
+        {loadError && (
+          <div style={styles.errorBanner}>
+            {loadError}
+            <button
+              style={{ marginLeft: 8, background: "none", border: `1px solid currentColor`, borderRadius: 6, padding: "2px 8px", fontSize: 11, fontWeight: 700, cursor: "pointer", color: "inherit" }}
+              onClick={() => window.location.reload()}
+            >
+              ફરી પ્રયત્ન કરો
+            </button>
+          </div>
+        )}
 
         {/* HOME */}
         {view === "home" && (
