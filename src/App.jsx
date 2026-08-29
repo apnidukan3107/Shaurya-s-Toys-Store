@@ -6,7 +6,6 @@ import {
 } from "lucide-react";
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
-import { getStorage, ref, uploadString, getDownloadURL } from "firebase/storage";
 
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
@@ -21,20 +20,10 @@ const firebaseConfig = {
 
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
-const storage = getStorage(firebaseApp);
-
-// Uploads a photo (as a data-URL from FileReader) to Firebase Storage and
-// returns its public download URL. We use Storage instead of saving the
-// base64 directly inside the Firestore "products" document because
-// Firestore documents are capped at 1MB — with 1000+ products that limit
-// gets hit fast and causes silent save failures. Storage has no such limit;
-// Firestore only ever holds a short URL string per product image now.
-async function uploadProductImage(dataUrl, keyHint) {
-  const path = `product-images/${keyHint}-${Date.now()}.jpg`;
-  const imgRef = ref(storage, path);
-  await uploadString(imgRef, dataUrl, "data_url");
-  return await getDownloadURL(imgRef);
-}
+// Note: photos are saved as base64 directly inside the Firestore product
+// document (no Firebase Storage / Blaze plan needed) — same approach as
+// the apni-dukan project. Firestore documents cap at 1MB, which is plenty
+// for a normal product catalog's worth of photos.
 
 // Firestore-backed storage — every key (products / orders / customCategories)
 // is stored as one document inside the "store" collection, matching the
@@ -141,6 +130,7 @@ export default function ApniDukanApp() {
   const [bulkImage, setBulkImage] = useState("");
   const [bulkOnlyMissing, setBulkOnlyMissing] = useState(true);
   const [bulkStatus, setBulkStatus] = useState("");
+  const [productStatus, setProductStatus] = useState("");
   const [deleteCategoryName, setDeleteCategoryName] = useState("");
   const [deleteConfirming, setDeleteConfirming] = useState(false);
   const [mergeSourceCategories, setMergeSourceCategories] = useState([]);
@@ -355,24 +345,21 @@ export default function ApniDukanApp() {
   }
 
   async function saveProduct() {
-    if (!newProduct.name.trim() || !newProduct.price) return;
+    if (!newProduct.name.trim()) {
+      setProductStatus("⚠️ પ્રોડક્ટનું નામ ભરો");
+      setTimeout(() => setProductStatus(""), 3000);
+      return;
+    }
+    if (!newProduct.price) {
+      setProductStatus("⚠️ ભાવ ભરો");
+      setTimeout(() => setProductStatus(""), 3000);
+      return;
+    }
     const stockVal = newProduct.stock === "" ? undefined : Number(newProduct.stock);
 
-    // If a fresh photo was picked, it's currently a big base64 data-URL —
-    // upload it to Firebase Storage first and swap in the short download
-    // URL so the Firestore document stays tiny no matter how many photos
-    // get added over time.
-    let imageToSave = newProduct.image;
-    if (imageToSave && imageToSave.startsWith("data:")) {
-      try {
-        setBulkStatus("ફોટો અપલોડ થાય છે...");
-        imageToSave = await uploadProductImage(imageToSave, editingProductId || "new");
-      } catch (e) {
-        setBulkStatus("⚠️ ફોટો અપલોડ કરવામાં તકલીફ પડી");
-        setTimeout(() => setBulkStatus(""), 3000);
-        return;
-      }
-    }
+    // Photo is saved directly as base64 inside the product document —
+    // no Firebase Storage / upload step, no Blaze plan needed.
+    const imageToSave = newProduct.image;
 
     let next;
     if (editingProductId) {
@@ -404,13 +391,14 @@ export default function ApniDukanApp() {
     setProducts(next);
     setNewProduct({ name: "", category: newProduct.category, price: "", img: "🛍️", image: "", stock: "" });
     setEditingProductId(null);
+    setProductStatus("સેવ થાય છે...");
     try {
       await storageSet("products", JSON.stringify(next));
-      setBulkStatus("✅ સેવ થયું");
-      setTimeout(() => setBulkStatus(""), 2000);
+      setProductStatus("✅ સેવ થયું");
+      setTimeout(() => setProductStatus(""), 2000);
     } catch {
-      setBulkStatus("⚠️ સેવ કરવામાં તકલીફ પડી");
-      setTimeout(() => setBulkStatus(""), 3000);
+      setProductStatus("⚠️ સેવ કરવામાં તકલીફ પડી");
+      setTimeout(() => setProductStatus(""), 3000);
     }
   }
 
@@ -500,17 +488,7 @@ export default function ApniDukanApp() {
 
   async function applyBulkCategoryImage() {
     if (!bulkCategory || !bulkImage) return;
-    let uploadedUrl = bulkImage;
-    if (bulkImage.startsWith("data:")) {
-      try {
-        setBulkStatus("ફોટો અપલોડ થાય છે...");
-        uploadedUrl = await uploadProductImage(bulkImage, `bulk-${bulkCategory}`);
-      } catch {
-        setBulkStatus("⚠️ ફોટો અપલોડ કરવામાં તકલીફ પડી");
-        setTimeout(() => setBulkStatus(""), 3000);
-        return;
-      }
-    }
+    const uploadedUrl = bulkImage;
     const kw = bulkKeyword.trim().toLowerCase();
     const next = products.map((p) => {
       if (p.category !== bulkCategory) return p;
@@ -1178,6 +1156,7 @@ export default function ApniDukanApp() {
                   </button>
                 )}
               </div>
+              {productStatus && <p style={{ fontSize: 12, marginTop: 6, fontWeight: 700 }}>{productStatus}</p>}
 
               <button
                 style={{
