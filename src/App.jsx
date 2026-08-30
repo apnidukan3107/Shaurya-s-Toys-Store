@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
+import { getAnalytics } from "firebase/analytics";
 
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
@@ -20,6 +21,7 @@ const firebaseConfig = {
 
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
+const analytics = getAnalytics(firebaseApp);
 // Note: photos are saved as base64 directly inside the Firestore product
 // document (no Firebase Storage / Blaze plan needed) — same approach as
 // the apni-dukan project. Firestore documents cap at 1MB, which is plenty
