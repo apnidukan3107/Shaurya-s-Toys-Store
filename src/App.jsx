@@ -4,28 +4,53 @@ import {
   Settings, Package, ClipboardList, Trash2, Lock, Loader2,
   Pencil, ImagePlus, Tag
 } from "lucide-react";
+import { initializeApp } from "firebase/app";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
+import { getAnalytics } from "firebase/analytics";
 
-// PREVIEW MODE: Firebase replaced with an in-memory mock so this can be
-// previewed instantly without a live backend. Real Firebase code is in
-// your GitHub repo's App.jsx — this file is preview-only, don't deploy it.
-const _mockDB = { products: null, orders: JSON.stringify([]), customCategories: JSON.stringify([]) };
-const _mockListeners = {};
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCc3Biv2uVjzDTFPr9ouFe2WL-KAw1ieOA",
+  authDomain: "shaurya-s-toys-store.firebaseapp.com",
+  projectId: "shaurya-s-toys-store",
+  storageBucket: "shaurya-s-toys-store.firebasestorage.app",
+  messagingSenderId: "832664456608",
+  appId: "1:832664456608:web:7fd6cc1ff0d2936757e8c5",
+  measurementId: "G-86L8EDT4DY"
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp);
+const analytics = getAnalytics(firebaseApp);
+// Note: photos are saved as base64 directly inside the Firestore product
+// document (no Firebase Storage / Blaze plan needed) — same approach as
+// the apni-dukan project. Firestore documents cap at 1MB, which is plenty
+// for a normal product catalog's worth of photos.
+
+// Firestore-backed storage — every key (products / orders / customCategories)
+// is stored as one document inside the "store" collection, matching the
+// Firestore security rules from the README (match /store/{docId}).
 async function storageGet(key) {
-  const value = _mockDB[key];
-  return value != null ? { value } : null;
+  const snap = await getDoc(doc(db, "store", key));
+  return snap.exists() ? { value: snap.data().value } : null;
 }
 async function storageSet(key, value) {
-  _mockDB[key] = value;
-  (_mockListeners[key] || []).forEach((fn) => fn(value));
+  await setDoc(doc(db, "store", key), { value });
   return true;
 }
+// Real-time listener — used for orders so the admin panel updates instantly
+// on every device/session the moment a new order comes in, without needing
+// a manual page refresh. This is what fixes "admin panel me order nahi dikhta".
 function storageListen(key, onChange) {
-  _mockListeners[key] = _mockListeners[key] || [];
-  _mockListeners[key].push(onChange);
-  if (_mockDB[key] != null) onChange(_mockDB[key]);
-  return () => {
-    _mockListeners[key] = (_mockListeners[key] || []).filter((fn) => fn !== onChange);
-  };
+  return onSnapshot(
+    doc(db, "store", key),
+    (snap) => {
+      if (snap.exists()) onChange(snap.data().value);
+    },
+    (err) => {
+      console.error("storageListen error for", key, err);
+    }
+  );
 }
 
 const CATEGORIES_DEFAULT = ["Soft Toys", "Action Figures", "Educational Toys", "Remote Control Toys", "Outdoor Toys", "Puzzles & Games", "Baby Toys", "Dolls", "બીજું"];
@@ -564,7 +589,6 @@ export default function ApniDukanApp() {
             <div key={i} style={{ ...styles.hazardBlock, background: c }} />
           ))}
         </div>
-        <WalkingDuckBanner />
         <div style={styles.topBar}>
           <TopBarNature />
           <div style={styles.brandRow}>
@@ -1186,6 +1210,7 @@ export default function ApniDukanApp() {
           </div>
         )}
       </div>
+      <WalkingDuckBanner />
     </div>
   );
 }
@@ -1209,7 +1234,7 @@ const T = {
 
 const styles = {
   appShell: { minHeight: "100vh", width: "100%", background: `radial-gradient(circle at 15% 0%, #e3e0d3 0%, transparent 45%), ${T.bg}`, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Hind Vadodara','Noto Sans Gujarati','Segoe UI',sans-serif", padding: "12px 0" },
-  phoneFrame: { width: 390, maxWidth: "100%", height: 780, maxHeight: "95vh", background: T.surface, borderRadius: 28, overflow: "hidden", boxShadow: "0 20px 50px rgba(40,35,20,0.3)", display: "flex", flexDirection: "column", border: `6px solid ${T.ink}` },
+  phoneFrame: { width: 390, maxWidth: "100%", height: 780, maxHeight: "95vh", background: T.surface, borderRadius: 28, overflow: "hidden", boxShadow: "0 20px 50px rgba(40,35,20,0.3)", display: "flex", flexDirection: "column", border: `6px solid ${T.ink}`, position: "relative" },
   hazardStrip: { height: 9, flexShrink: 0, display: "flex", background: T.ink },
   hazardBlock: { flex: 1, height: "100%" },
   topBar: { background: `linear-gradient(180deg, ${T.greenLight}, ${T.greenLight2})`, padding: "14px 16px 12px", position: "relative", overflow: "hidden", flexShrink: 0 },
@@ -1276,22 +1301,22 @@ const styles = {
 
 /* signature illustration: a kite on a curved string, tying the toy-shop
    identity to Gujarat's own kite-flying tradition — used in the top strip */
-/* Walking duck banner — duck emoji bobs up/down (walk gait) while sliding
-   left to right across the strip, looping continuously. */
+/* Walking duck — animated GIF from /duck-animation.gif in the public folder,
+   pinned along the very bottom edge of the phone screen (no box/frame),
+   with a lively walking bob+tilt gait while it crosses left to right. */
 function WalkingDuckBanner() {
   return (
-    <div style={{ width: "100%", height: 42, overflow: "hidden", position: "relative", background: "#FFF7E6", flexShrink: 0, borderBottom: `1px solid ${T.hairline}` }}>
+    <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 0, overflow: "visible", pointerEvents: "none", zIndex: 5 }}>
       <style>{`
-        @keyframes duckMoveAcross { 0% { left: -40px; } 100% { left: 100%; } }
-        @keyframes duckWalkBob { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-6px) rotate(4deg); } }
+        @keyframes duckMoveAcross { 0% { left: -80px; } 100% { left: 100%; } }
+        @keyframes duckWalkBob { 0%, 100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-14px) rotate(6deg); } }
       `}</style>
-      <div style={{
-        position: "absolute", left: "-40px", top: 6, fontSize: 26,
-        animation: "duckMoveAcross 6s linear infinite, duckWalkBob 0.35s ease-in-out infinite",
+      <img src="/duck-animation.gif" alt="Walking duck" style={{
+        position: "absolute", left: "-80px", bottom: 0, height: 72, width: "auto",
+        animation: "duckMoveAcross 6s linear infinite, duckWalkBob 0.3s ease-in-out infinite",
         transformOrigin: "bottom center",
-      }}>
-        🦆
-      </div>
+        filter: "drop-shadow(0 4px 4px rgba(0,0,0,0.25))",
+      }} />
     </div>
   );
 }
