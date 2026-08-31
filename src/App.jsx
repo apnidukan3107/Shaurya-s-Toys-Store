@@ -4,53 +4,28 @@ import {
   Settings, Package, ClipboardList, Trash2, Lock, Loader2,
   Pencil, ImagePlus, Tag
 } from "lucide-react";
-import { initializeApp } from "firebase/app";
-import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
-import { getAnalytics } from "firebase/analytics";
 
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCc3Biv2uVjzDTFPr9ouFe2WL-KAw1ieOA",
-  authDomain: "shaurya-s-toys-store.firebaseapp.com",
-  projectId: "shaurya-s-toys-store",
-  storageBucket: "shaurya-s-toys-store.firebasestorage.app",
-  messagingSenderId: "832664456608",
-  appId: "1:832664456608:web:7fd6cc1ff0d2936757e8c5",
-  measurementId: "G-86L8EDT4DY"
-};
-
-const firebaseApp = initializeApp(firebaseConfig);
-const db = getFirestore(firebaseApp);
-const analytics = getAnalytics(firebaseApp);
-// Note: photos are saved as base64 directly inside the Firestore product
-// document (no Firebase Storage / Blaze plan needed) — same approach as
-// the apni-dukan project. Firestore documents cap at 1MB, which is plenty
-// for a normal product catalog's worth of photos.
-
-// Firestore-backed storage — every key (products / orders / customCategories)
-// is stored as one document inside the "store" collection, matching the
-// Firestore security rules from the README (match /store/{docId}).
+// PREVIEW MODE: Firebase replaced with an in-memory mock so this can be
+// previewed instantly without a live backend. Real Firebase code is in
+// your GitHub repo's App.jsx — this file is preview-only, don't deploy it.
+const _mockDB = { products: null, orders: JSON.stringify([]), customCategories: JSON.stringify([]) };
+const _mockListeners = {};
 async function storageGet(key) {
-  const snap = await getDoc(doc(db, "store", key));
-  return snap.exists() ? { value: snap.data().value } : null;
+  const value = _mockDB[key];
+  return value != null ? { value } : null;
 }
 async function storageSet(key, value) {
-  await setDoc(doc(db, "store", key), { value });
+  _mockDB[key] = value;
+  (_mockListeners[key] || []).forEach((fn) => fn(value));
   return true;
 }
-// Real-time listener — used for orders so the admin panel updates instantly
-// on every device/session the moment a new order comes in, without needing
-// a manual page refresh. This is what fixes "admin panel me order nahi dikhta".
 function storageListen(key, onChange) {
-  return onSnapshot(
-    doc(db, "store", key),
-    (snap) => {
-      if (snap.exists()) onChange(snap.data().value);
-    },
-    (err) => {
-      console.error("storageListen error for", key, err);
-    }
-  );
+  _mockListeners[key] = _mockListeners[key] || [];
+  _mockListeners[key].push(onChange);
+  if (_mockDB[key] != null) onChange(_mockDB[key]);
+  return () => {
+    _mockListeners[key] = (_mockListeners[key] || []).filter((fn) => fn !== onChange);
+  };
 }
 
 const CATEGORIES_DEFAULT = ["Soft Toys", "Action Figures", "Educational Toys", "Remote Control Toys", "Outdoor Toys", "Puzzles & Games", "Baby Toys", "Dolls", "બીજું"];
@@ -589,6 +564,7 @@ export default function ApniDukanApp() {
             <div key={i} style={{ ...styles.hazardBlock, background: c }} />
           ))}
         </div>
+        <WalkingDuckBanner />
         <div style={styles.topBar}>
           <TopBarNature />
           <div style={styles.brandRow}>
@@ -1300,6 +1276,26 @@ const styles = {
 
 /* signature illustration: a kite on a curved string, tying the toy-shop
    identity to Gujarat's own kite-flying tradition — used in the top strip */
+/* Walking duck banner — duck emoji bobs up/down (walk gait) while sliding
+   left to right across the strip, looping continuously. */
+function WalkingDuckBanner() {
+  return (
+    <div style={{ width: "100%", height: 42, overflow: "hidden", position: "relative", background: "#FFF7E6", flexShrink: 0, borderBottom: `1px solid ${T.hairline}` }}>
+      <style>{`
+        @keyframes duckMoveAcross { 0% { left: -40px; } 100% { left: 100%; } }
+        @keyframes duckWalkBob { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-6px) rotate(4deg); } }
+      `}</style>
+      <div style={{
+        position: "absolute", left: "-40px", top: 6, fontSize: 26,
+        animation: "duckMoveAcross 6s linear infinite, duckWalkBob 0.35s ease-in-out infinite",
+        transformOrigin: "bottom center",
+      }}>
+        🦆
+      </div>
+    </div>
+  );
+}
+
 function TopBarNature() {
   return (
     <svg style={styles.topBarLeaf} viewBox="0 0 160 120" fill="none">
