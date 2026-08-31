@@ -1308,11 +1308,11 @@ function WalkingDuckBanner() {
   return (
     <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 0, overflow: "visible", pointerEvents: "none", zIndex: 5 }}>
       <style>{`
-        @keyframes duckMoveAcross { 0% { left: -80px; } 100% { left: 100%; } }
+        @keyframes duckMoveAcross { 0% { left: -150px; } 100% { left: 100%; } }
         @keyframes duckWalkBob { 0%, 100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-14px) rotate(6deg); } }
       `}</style>
       <img src="/duck-animation.gif" alt="Walking duck" style={{
-        position: "absolute", left: "-80px", bottom: 0, height: 72, width: "auto",
+        position: "absolute", left: "-150px", bottom: 0, height: 130, width: "auto",
         animation: "duckMoveAcross 6s linear infinite, duckWalkBob 0.3s ease-in-out infinite",
         transformOrigin: "bottom center",
         filter: "drop-shadow(0 4px 4px rgba(0,0,0,0.25))",
