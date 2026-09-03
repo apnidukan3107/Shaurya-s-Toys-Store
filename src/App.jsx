@@ -93,19 +93,19 @@ const SEED_PRODUCTS = [
 // store exactly once (see MIGRATION_ID below) without ever touching or
 // re-adding anything the admin deletes afterwards.
 const NEW_BATCH_2026_08_31 = [
-  { id: "clr-1", name: "Barbie Flip Phone Toy (Set of 2)", category: "Baby Toys", price: 199, mrp: 399, img: "📱", image: "/products/product-01-barbie-phone.jpg", stock: 1 },
-  { id: "clr-2", name: "Flying Chariot Gyro Saucer with Cars", category: "Puzzles & Games", price: 199, mrp: 399, img: "🛸", image: "/products/product-02-gyro-saucer.jpg", stock: 1 },
-  { id: "clr-3", name: "Drone Copter High-Tech Shooter", category: "Action Figures", price: 199, mrp: 399, img: "🚁", image: "/products/product-03-drone-shooter.jpg", stock: 1 },
-  { id: "clr-4", name: "2-in-1 Projection Flashlight (24 Images)", category: "Baby Toys", price: 199, mrp: 399, img: "🔦", image: "/products/product-04-projection-flashlight.jpg", stock: 1 },
-  { id: "clr-5", name: "Doraemon Xylophone Musical Toy", category: "Educational Toys", price: 199, mrp: 399, img: "🎹", image: "/products/product-05-doraemon-xylophone.jpg", stock: 1 },
-  { id: "clr-6", name: "Musical Nursery Merry Go Round", category: "Baby Toys", price: 199, mrp: 399, img: "🎠", image: "/products/product-06-musical-nursery.jpg", stock: 1 },
-  { id: "clr-7", name: "Alphabet Puzzle Blocks Bag (A-L)", category: "Educational Toys", price: 199, mrp: 399, img: "🔤", image: "/products/product-07-alphabet-puzzle.jpg", stock: 1 },
-  { id: "clr-8", name: "Soft Plush Doll (Assorted)", category: "Dolls", price: 199, mrp: 399, img: "🧸", image: "/products/product-08-soft-doll.jpg", stock: 1 },
-  { id: "clr-9", name: "Aero Supersonic Fighter Jet Toy", category: "Action Figures", price: 199, mrp: 399, img: "✈️", image: "/products/product-09-aero-jet.jpg", stock: 1 },
-  { id: "clr-10", name: "Police Car Toy (Set of 2)", category: "Action Figures", price: 199, mrp: 399, img: "🚓", image: "/products/product-10-police-car.jpg", stock: 1 },
-  { id: "clr-11", name: "Dancing Cactus Toy (USB)", category: "Baby Toys", price: 199, mrp: 399, img: "🌵", image: "/products/product-11-dancing-cactus.jpg", stock: 1 },
-  { id: "clr-12", name: "Animal Face Mask (Assorted)", category: "Puzzles & Games", price: 199, mrp: 399, img: "🎭", image: "/products/product-12-animal-mask.jpg", stock: 1 },
-  { id: "clr-13", name: "Kitchen Play Set (Good Food)", category: "Dolls", price: 199, mrp: 399, img: "🍳", image: "/products/product-13-kitchen-playset.jpg", stock: 1 },
+  { id: "clr-1", name: "Barbie Flip Phone Toy (Set of 2)", category: "Baby Toys", price: 199, mrp: 399, img: "📱", image: "/product-01-barbie-phone.jpg", stock: 1 },
+  { id: "clr-2", name: "Flying Chariot Gyro Saucer with Cars", category: "Puzzles & Games", price: 199, mrp: 399, img: "🛸", image: "/product-02-gyro-saucer.jpg", stock: 1 },
+  { id: "clr-3", name: "Drone Copter High-Tech Shooter", category: "Action Figures", price: 199, mrp: 399, img: "🚁", image: "/product-03-drone-shooter.jpg", stock: 1 },
+  { id: "clr-4", name: "2-in-1 Projection Flashlight (24 Images)", category: "Baby Toys", price: 199, mrp: 399, img: "🔦", image: "/product-04-projection-flashlight.jpg", stock: 1 },
+  { id: "clr-5", name: "Doraemon Xylophone Musical Toy", category: "Educational Toys", price: 199, mrp: 399, img: "🎹", image: "/product-05-doraemon-xylophone.jpg", stock: 1 },
+  { id: "clr-6", name: "Musical Nursery Merry Go Round", category: "Baby Toys", price: 199, mrp: 399, img: "🎠", image: "/product-06-musical-nursery.jpg", stock: 1 },
+  { id: "clr-7", name: "Alphabet Puzzle Blocks Bag (A-L)", category: "Educational Toys", price: 199, mrp: 399, img: "🔤", image: "/product-07-alphabet-puzzle.jpg", stock: 1 },
+  { id: "clr-8", name: "Soft Plush Doll (Assorted)", category: "Dolls", price: 199, mrp: 399, img: "🧸", image: "/product-08-soft-doll.jpg", stock: 1 },
+  { id: "clr-9", name: "Aero Supersonic Fighter Jet Toy", category: "Action Figures", price: 199, mrp: 399, img: "✈️", image: "/product-09-aero-jet.jpg", stock: 1 },
+  { id: "clr-10", name: "Police Car Toy (Set of 2)", category: "Action Figures", price: 199, mrp: 399, img: "🚓", image: "/product-10-police-car.jpg", stock: 1 },
+  { id: "clr-11", name: "Dancing Cactus Toy (USB)", category: "Baby Toys", price: 199, mrp: 399, img: "🌵", image: "/product-11-dancing-cactus.jpg", stock: 1 },
+  { id: "clr-12", name: "Animal Face Mask (Assorted)", category: "Puzzles & Games", price: 199, mrp: 399, img: "🎭", image: "/product-12-animal-mask.jpg", stock: 1 },
+  { id: "clr-13", name: "Kitchen Play Set (Good Food)", category: "Dolls", price: 199, mrp: 399, img: "🍳", image: "/product-13-kitchen-playset.jpg", stock: 1 },
 ];
 const MIGRATION_ID = "clr-batch-2026-08-31";
 
