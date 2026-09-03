@@ -217,6 +217,20 @@ export default function ApniDukanApp() {
             } catch {}
           }
         }
+        // Permanently remove any product that has no real photo (only an
+        // emoji placeholder). Runs every load but is safe to repeat — once
+        // the catalog is clean there's nothing left to remove, so it does
+        // nothing on later loads. Any future product added without a real
+        // photo will also get cleaned out on next load, by design.
+        if (!timedOut) {
+          const withPhoto = prod.filter((p) => !!p.image);
+          if (withPhoto.length !== prod.length) {
+            prod = withPhoto;
+            try {
+              await Promise.race([storageSet("products", JSON.stringify(prod)), timeout(8000)]);
+            } catch {}
+          }
+        }
         setProducts(prod);
 
         let cats = [];
