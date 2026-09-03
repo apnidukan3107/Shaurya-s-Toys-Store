@@ -194,29 +194,28 @@ export default function ApniDukanApp() {
           if (!timedOut) {
             try {
               await Promise.race([storageSet("products", JSON.stringify(prod)), timeout(8000)]);
-              await Promise.race([storageSet("migrations", JSON.stringify([MIGRATION_ID])), timeout(8000)]);
             } catch {}
           }
         } else if (!timedOut) {
-          // Existing store: run any pending one-time catalog additions
-          // (brand-new products only — never re-adds anything the admin
-          // has deleted, since each migration only runs once ever).
-          try {
-            const migRes = await Promise.race([storageGet("migrations"), timeout(8000)]);
-            const doneMigrations = migRes ? JSON.parse(migRes.value) || [] : [];
-            if (!doneMigrations.includes(MIGRATION_ID)) {
-              const existingIds = new Set(prod.map((p) => p.id));
-              const toAdd = NEW_BATCH_2026_08_31.filter((p) => !existingIds.has(p.id));
-              if (toAdd.length > 0) {
-                prod = [...toAdd, ...prod];
-                await Promise.race([storageSet("products", JSON.stringify(prod)), timeout(8000)]);
-              }
-              await Promise.race([
-                storageSet("migrations", JSON.stringify([...doneMigrations, MIGRATION_ID])),
-                timeout(8000),
-              ]);
-            }
-          } catch {}
+          // Existing store: add the new corrected-price batch exactly once,
+          // ever. We deliberately do NOT use a separate "migrations" document
+          // for this flag — Firestore's security rules only allow the
+          // products/orders/customCategories document IDs, so writes to any
+          // other new key are silently rejected and never actually persist,
+          // which was causing deleted items to keep coming back on every
+          // reload. Instead: if the store has never held even one item from
+          // this batch, add the whole batch once. After that, the mere
+          // presence of any one of these ids (even just one still remaining)
+          // proves the batch was already added, so it's never re-added again
+          // — deleting any of them individually stays permanent.
+          const newBatchIds = new Set(NEW_BATCH_2026_08_31.map((p) => p.id));
+          const hasAnyNewBatchItem = prod.some((p) => newBatchIds.has(p.id));
+          if (!hasAnyNewBatchItem) {
+            prod = [...NEW_BATCH_2026_08_31, ...prod];
+            try {
+              await Promise.race([storageSet("products", JSON.stringify(prod)), timeout(8000)]);
+            } catch {}
+          }
         }
         setProducts(prod);
 
@@ -1417,11 +1416,13 @@ const styles = {
 /* signature illustration: a kite on a curved string, tying the toy-shop
    identity to Gujarat's own kite-flying tradition — used in the top strip */
 /* Walking duck — animated GIF from /duck-animation.gif in the public folder,
-   pinned along the very bottom edge of the phone screen (no box/frame),
+   pinned along the very bottom edge of the actual screen (position: fixed,
+   not tied to any inner container's height — this is what stops it from
+   drifting up and overlapping product cards on real phones), no box/frame,
    with a lively walking bob+tilt gait while it crosses left to right. */
 function WalkingDuckBanner() {
   return (
-    <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 0, overflow: "visible", pointerEvents: "none", zIndex: 5 }}>
+    <div style={{ position: "fixed", left: 0, right: 0, bottom: 0, height: 0, overflow: "visible", pointerEvents: "none", zIndex: 999 }}>
       <style>{`
         @keyframes duckMoveAcross { 0% { left: -150px; } 100% { left: 100%; } }
         @keyframes duckWalkBob { 0%, 100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-14px) rotate(6deg); } }
