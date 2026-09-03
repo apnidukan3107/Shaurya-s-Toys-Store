@@ -86,6 +86,13 @@ const SEED_PRODUCTS = [
   { id: "dl-1", name: "Fashion Doll with Accessories", category: "Dolls", price: 549, mrp: 899, img: "👗", stock: 16 },
   { id: "dl-2", name: "Baby Doll with Feeding Set", category: "Dolls", price: 449, mrp: 699, img: "👶", stock: 14 },
   { id: "dl-3", name: "Princess Doll House", category: "Dolls", price: 1499, mrp: 2299, img: "🏰", stock: 6 },
+];
+
+// New corrected-price batch (₹199, 50% off ₹399, stock 1) added later. Kept
+// separate from SEED_PRODUCTS so it can be auto-merged into an already-live
+// store exactly once (see MIGRATION_ID below) without ever touching or
+// re-adding anything the admin deletes afterwards.
+const NEW_BATCH_2026_08_31 = [
   { id: "clr-1", name: "Barbie Flip Phone Toy (Set of 2)", category: "Baby Toys", price: 199, mrp: 399, img: "📱", image: "/products/product-01-barbie-phone.jpg", stock: 1 },
   { id: "clr-2", name: "Flying Chariot Gyro Saucer with Cars", category: "Puzzles & Games", price: 199, mrp: 399, img: "🛸", image: "/products/product-02-gyro-saucer.jpg", stock: 1 },
   { id: "clr-3", name: "Drone Copter High-Tech Shooter", category: "Action Figures", price: 199, mrp: 399, img: "🚁", image: "/products/product-03-drone-shooter.jpg", stock: 1 },
@@ -100,6 +107,7 @@ const SEED_PRODUCTS = [
   { id: "clr-12", name: "Animal Face Mask (Assorted)", category: "Puzzles & Games", price: 199, mrp: 399, img: "🎭", image: "/products/product-12-animal-mask.jpg", stock: 1 },
   { id: "clr-13", name: "Kitchen Play Set (Good Food)", category: "Dolls", price: 199, mrp: 399, img: "🍳", image: "/products/product-13-kitchen-playset.jpg", stock: 1 },
 ];
+const MIGRATION_ID = "clr-batch-2026-08-31";
 
 function formatRs(n) {
   return "₹" + Number(n || 0).toLocaleString("en-IN");
@@ -182,12 +190,33 @@ export default function ApniDukanApp() {
         // but is now short/empty because the admin deleted products, respect
         // that — never silently re-add the seed catalog on top of it.
         if (!docExisted) {
-          prod = SEED_PRODUCTS;
+          prod = [...SEED_PRODUCTS, ...NEW_BATCH_2026_08_31];
           if (!timedOut) {
             try {
               await Promise.race([storageSet("products", JSON.stringify(prod)), timeout(8000)]);
+              await Promise.race([storageSet("migrations", JSON.stringify([MIGRATION_ID])), timeout(8000)]);
             } catch {}
           }
+        } else if (!timedOut) {
+          // Existing store: run any pending one-time catalog additions
+          // (brand-new products only — never re-adds anything the admin
+          // has deleted, since each migration only runs once ever).
+          try {
+            const migRes = await Promise.race([storageGet("migrations"), timeout(8000)]);
+            const doneMigrations = migRes ? JSON.parse(migRes.value) || [] : [];
+            if (!doneMigrations.includes(MIGRATION_ID)) {
+              const existingIds = new Set(prod.map((p) => p.id));
+              const toAdd = NEW_BATCH_2026_08_31.filter((p) => !existingIds.has(p.id));
+              if (toAdd.length > 0) {
+                prod = [...toAdd, ...prod];
+                await Promise.race([storageSet("products", JSON.stringify(prod)), timeout(8000)]);
+              }
+              await Promise.race([
+                storageSet("migrations", JSON.stringify([...doneMigrations, MIGRATION_ID])),
+                timeout(8000),
+              ]);
+            }
+          } catch {}
         }
         setProducts(prod);
 
@@ -379,7 +408,7 @@ export default function ApniDukanApp() {
     try {
       const fresh = await getFreshProducts();
       const existingIds = new Set(fresh.map((p) => p.id));
-      const toAdd = SEED_PRODUCTS.filter((p) => !existingIds.has(p.id));
+      const toAdd = [...SEED_PRODUCTS, ...NEW_BATCH_2026_08_31].filter((p) => !existingIds.has(p.id));
       const next = [...toAdd, ...fresh];
       const res = await storageSet("products", JSON.stringify(next));
       if (res) setProducts(next);
