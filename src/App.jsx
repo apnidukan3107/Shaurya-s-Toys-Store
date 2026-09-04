@@ -1445,14 +1445,14 @@ function DuckMascot() {
           height: 130px;
           pointer-events: none;
           z-index: 40;
-          animation: duckWalk 12s linear infinite;
+          animation: duckWalk 8s linear infinite;
         }
         .duck-img {
           width: 130px;
           height: 130px;
           object-fit: contain;
           display: block;
-          animation: duckFlip 12s linear infinite;
+          animation: duckFlip 8s linear infinite;
         }
         .duck-bubble {
           position: absolute;
@@ -1467,7 +1467,7 @@ function DuckMascot() {
           border-radius: 12px;
           white-space: nowrap;
           box-shadow: 0 6px 16px rgba(0,0,0,0.18);
-          animation: duckBubble 12s linear infinite;
+          animation: duckBubble 8s linear infinite;
         }
         .duck-bubble:after {
           content: "";
@@ -1481,28 +1481,38 @@ function DuckMascot() {
         }
         @keyframes duckWalk {
           0%   { left: 0%; }
-          28%  { left: calc(100% - 130px); }
-          35%  { left: calc(50% - 65px); }
-          65%  { left: calc(50% - 65px); }
-          72%  { left: 0%; }
+          18%  { left: calc(50% - 65px); }
+          32%  { left: calc(50% - 65px); }
+          50%  { left: calc(100% - 130px); }
+          54%  { left: calc(100% - 130px); }
+          68%  { left: calc(50% - 65px); }
+          82%  { left: calc(50% - 65px); }
           100% { left: 0%; }
         }
         @keyframes duckFlip {
           0%   { transform: scaleX(1); }
-          27%  { transform: scaleX(1); }
-          29%  { transform: scaleX(-1); }
-          64%  { transform: scaleX(-1); }
-          66%  { transform: scaleX(-1); }
-          71%  { transform: scaleX(1); }
+          31%  { transform: scaleX(1); }
+          33%  { transform: scaleX(1); }
+          49%  { transform: scaleX(1); }
+          51%  { transform: scaleX(-1); }
+          81%  { transform: scaleX(-1); }
+          83%  { transform: scaleX(-1); }
+          97%  { transform: scaleX(-1); }
+          99%  { transform: scaleX(1); }
           100% { transform: scaleX(1); }
         }
         @keyframes duckBubble {
           0%   { transform: translateX(-50%) scale(0); opacity: 0; }
-          33%  { transform: translateX(-50%) scale(0); opacity: 0; }
-          38%  { transform: translateX(-50%) scale(1.15); opacity: 1; }
-          42%  { transform: translateX(-50%) scale(1); opacity: 1; }
-          60%  { transform: translateX(-50%) scale(1); opacity: 1; }
-          65%  { transform: translateX(-50%) scale(0); opacity: 0; }
+          16%  { transform: translateX(-50%) scale(0); opacity: 0; }
+          19%  { transform: translateX(-50%) scale(1.15); opacity: 1; }
+          22%  { transform: translateX(-50%) scale(1); opacity: 1; }
+          29%  { transform: translateX(-50%) scale(1); opacity: 1; }
+          32%  { transform: translateX(-50%) scale(0); opacity: 0; }
+          66%  { transform: translateX(-50%) scale(0); opacity: 0; }
+          69%  { transform: translateX(-50%) scale(1.15); opacity: 1; }
+          72%  { transform: translateX(-50%) scale(1); opacity: 1; }
+          79%  { transform: translateX(-50%) scale(1); opacity: 1; }
+          82%  { transform: translateX(-50%) scale(0); opacity: 0; }
           100% { transform: translateX(-50%) scale(0); opacity: 0; }
         }
       `}</style>
