@@ -176,6 +176,7 @@ export default function ApniDukanApp() {
   const [cart, setCart] = useState({});
   const [view, setView] = useState("home");
   const [lastOrderId, setLastOrderId] = useState("");
+  const [zoomedProduct, setZoomedProduct] = useState(null);
 
   // admin
   const [isAdmin, setIsAdmin] = useState(false);
@@ -185,7 +186,7 @@ export default function ApniDukanApp() {
   const [editingProductId, setEditingProductId] = useState(null);
   const [customCategories, setCustomCategories] = useState([]);
   const [newCategoryName, setNewCategoryName] = useState("");
-  const [showProductList, setShowProductList] = useState(false);
+  const [showProductList, setShowProductList] = useState(true);
   const [bulkCategory, setBulkCategory] = useState("");
   const [bulkKeyword, setBulkKeyword] = useState("");
   const [bulkImage, setBulkImage] = useState("");
@@ -737,7 +738,10 @@ export default function ApniDukanApp() {
             <div style={styles.grid}>
               {filtered.map((p) => (
                 <div key={p.id} style={styles.card}>
-                  <div style={styles.cardImgWrap}>
+                  <div
+                    style={{ ...styles.cardImgWrap, cursor: resolveProductImage(p) ? "zoom-in" : "default" }}
+                    onClick={() => resolveProductImage(p) && setZoomedProduct(p)}
+                  >
                     {resolveProductImage(p) ? (
                       <img src={resolveProductImage(p)} alt={p.name} style={styles.cardImg} />
                     ) : (
@@ -1281,6 +1285,61 @@ export default function ApniDukanApp() {
           </div>
         )}
       </div>
+      {zoomedProduct && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(20,16,10,0.88)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 999,
+            padding: 20,
+          }}
+          onClick={() => setZoomedProduct(null)}
+        >
+          <button
+            onClick={() => setZoomedProduct(null)}
+            style={{
+              position: "absolute",
+              top: 18,
+              right: 18,
+              background: "rgba(255,255,255,0.15)",
+              border: "none",
+              borderRadius: 999,
+              width: 38,
+              height: 38,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+            }}
+            aria-label="બંધ કરો"
+          >
+            <X size={20} color="#fff" />
+          </button>
+          <img
+            src={resolveProductImage(zoomedProduct)}
+            alt={zoomedProduct.name}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: "92vw",
+              maxHeight: "72vh",
+              objectFit: "contain",
+              borderRadius: 14,
+              boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
+            }}
+          />
+          <div style={{ color: "#fff", marginTop: 14, fontWeight: 700, fontSize: 15, textAlign: "center" }}>
+            {zoomedProduct.name}
+          </div>
+          <div style={{ color: "rgba(255,255,255,0.8)", fontSize: 13, marginTop: 2 }}>
+            {formatRs(zoomedProduct.price)}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
