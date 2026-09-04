@@ -147,33 +147,6 @@ function resolveProductImage(p) {
   return p.image || "";
 }
 
-const SEED_PRODUCTS = [
-  { id: "st-1", name: "Teddy Bear - Large (24 inch)", category: "Soft Toys", price: 499, mrp: 799, img: "🧸", stock: 20 },
-  { id: "st-2", name: "Bunny Soft Toy", category: "Soft Toys", price: 249, mrp: 399, img: "🐰", stock: 25 },
-  { id: "st-3", name: "Elephant Cushion Toy", category: "Soft Toys", price: 349, mrp: 549, img: "🐘", stock: 15 },
-  { id: "af-1", name: "Superhero Action Figure", category: "Action Figures", price: 199, mrp: 349, img: "🦸", stock: 30 },
-  { id: "af-2", name: "Dinosaur Figure Set (6 pcs)", category: "Action Figures", price: 299, mrp: 499, img: "🦖", stock: 18 },
-  { id: "af-3", name: "Robot Warrior Figure", category: "Action Figures", price: 349, mrp: 599, img: "🤖", stock: 12 },
-  { id: "et-1", name: "Alphabet Learning Blocks", category: "Educational Toys", price: 449, mrp: 699, img: "🔤", stock: 22 },
-  { id: "et-2", name: "Math Counting Kit", category: "Educational Toys", price: 299, mrp: 449, img: "🔢", stock: 20 },
-  { id: "et-3", name: "Science Experiment Kit", category: "Educational Toys", price: 799, mrp: 1199, img: "🧪", stock: 10 },
-  { id: "rc-1", name: "RC Race Car", category: "Remote Control Toys", price: 899, mrp: 1499, img: "🚗", stock: 14 },
-  { id: "rc-2", name: "RC Helicopter", category: "Remote Control Toys", price: 1299, mrp: 1999, img: "🚁", stock: 8 },
-  { id: "rc-3", name: "RC Robot", category: "Remote Control Toys", price: 1099, mrp: 1699, img: "🤖", stock: 9 },
-  { id: "ot-1", name: "Cricket Set for Kids", category: "Outdoor Toys", price: 399, mrp: 599, img: "🏏", stock: 18 },
-  { id: "ot-2", name: "Football Size 3", category: "Outdoor Toys", price: 349, mrp: 549, img: "⚽", stock: 20 },
-  { id: "ot-3", name: "Bicycle Kids 16 inch", category: "Outdoor Toys", price: 3499, mrp: 4999, img: "🚲", stock: 5 },
-  { id: "pg-1", name: "Jigsaw Puzzle 500 pcs", category: "Puzzles & Games", price: 299, mrp: 449, img: "🧩", stock: 16 },
-  { id: "pg-2", name: "Ludo & Snake Ladder Combo", category: "Puzzles & Games", price: 199, mrp: 299, img: "🎲", stock: 25 },
-  { id: "pg-3", name: "Rubik's Cube", category: "Puzzles & Games", price: 249, mrp: 399, img: "🟦", stock: 22 },
-  { id: "bt-1", name: "Baby Rattle Set", category: "Baby Toys", price: 199, mrp: 299, img: "🍼", stock: 30 },
-  { id: "bt-2", name: "Soft Teether Toy", category: "Baby Toys", price: 149, mrp: 249, img: "🦷", stock: 28 },
-  { id: "bt-3", name: "Musical Baby Gym", category: "Baby Toys", price: 899, mrp: 1399, img: "🎵", stock: 10 },
-  { id: "dl-1", name: "Fashion Doll with Accessories", category: "Dolls", price: 549, mrp: 899, img: "👗", stock: 16 },
-  { id: "dl-2", name: "Baby Doll with Feeding Set", category: "Dolls", price: 449, mrp: 699, img: "👶", stock: 14 },
-  { id: "dl-3", name: "Princess Doll House", category: "Dolls", price: 1499, mrp: 2299, img: "🏰", stock: 6 },
-];
-
 function formatRs(n) {
   return "₹" + Number(n || 0).toLocaleString("en-IN");
 }
@@ -243,15 +216,11 @@ export default function ApniDukanApp() {
           if (e && e.message === "timeout") timedOut = true;
           prod = [];
         }
-        if (!prod || prod.length === 0) {
-          prod = SEED_PRODUCTS;
-          if (!timedOut) {
-            try {
-              await Promise.race([storageSet("products", JSON.stringify(prod)), timeout(8000)]);
-            } catch {}
-          }
-        }
-        setProducts(prod);
+        // Note: we never auto-fill with demo/placeholder products here.
+        // A slow network causing a false "empty" read must never overwrite
+        // real store data — if it's genuinely empty, the admin can add
+        // products manually or use the sample-products button.
+        setProducts(prod || []);
 
         let cats = [];
         try {
@@ -417,19 +386,6 @@ export default function ApniDukanApp() {
     try {
       await storageSet("orders", JSON.stringify(next));
     } catch {}
-  }
-
-  async function importSeedCatalog() {
-    setSaving(true);
-    try {
-      const existingIds = new Set(products.map((p) => p.id));
-      const toAdd = SEED_PRODUCTS.filter((p) => !existingIds.has(p.id));
-      const next = [...toAdd, ...products];
-      const res = await storageSet("products", JSON.stringify(next));
-      if (res) setProducts(next);
-    } catch {} finally {
-      setSaving(false);
-    }
   }
 
   async function seedSampleProducts() {
@@ -966,9 +922,6 @@ export default function ApniDukanApp() {
         {view === "admin" && (
           <div style={styles.scrollArea}>
             <div style={{ padding: 16 }}>
-              <button style={{ ...styles.primaryBtn, marginTop: 0, marginBottom: 16 }} onClick={importSeedCatalog} disabled={saving}>
-                {saving ? "લોડ થાય છે..." : "ડિફોલ્ટ ટોય કેટલોગ લોડ/અપડેટ કરો"}
-              </button>
               <div style={styles.adminSectionTitle}><ClipboardList size={16} /> ઓર્ડર્સ ({orders.length})</div>
               {orders.length === 0 && <p style={{ color: "#a49c88", fontSize: 13 }}>હજુ કોઈ ઓર્ડર નથી.</p>}
               {orders.map((o, idx) => (
