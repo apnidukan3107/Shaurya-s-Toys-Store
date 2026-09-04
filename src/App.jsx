@@ -793,6 +793,7 @@ export default function ApniDukanApp() {
                 <div style={styles.missionText2}>Every order backs local youth livelihoods</div>
               </div>
             </div>
+            <DuckMascot />
           </div>
         )}
 
@@ -1363,7 +1364,7 @@ const T = {
 
 const styles = {
   appShell: { minHeight: "100vh", width: "100%", background: `radial-gradient(circle at 15% 0%, #e3e0d3 0%, transparent 45%), ${T.bg}`, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Hind Vadodara','Noto Sans Gujarati','Segoe UI',sans-serif", padding: "12px 0" },
-  phoneFrame: { width: 390, maxWidth: "100%", height: 780, maxHeight: "95vh", background: T.surface, borderRadius: 28, overflow: "hidden", boxShadow: "0 20px 50px rgba(40,35,20,0.3)", display: "flex", flexDirection: "column", border: `6px solid ${T.ink}` },
+  phoneFrame: { width: 390, maxWidth: "100%", height: 780, maxHeight: "95vh", background: T.surface, borderRadius: 28, overflow: "hidden", boxShadow: "0 20px 50px rgba(40,35,20,0.3)", display: "flex", flexDirection: "column", border: `6px solid ${T.ink}`, position: "relative" },
   hazardStrip: { height: 9, flexShrink: 0, display: "flex", background: T.ink },
   hazardBlock: { flex: 1, height: "100%" },
   topBar: { background: `linear-gradient(180deg, ${T.greenLight}, ${T.greenLight2})`, padding: "14px 16px 12px", position: "relative", overflow: "hidden", flexShrink: 0 },
@@ -1430,6 +1431,85 @@ const styles = {
 
 /* signature illustration: a kite on a curved string, tying the toy-shop
    identity to Gujarat's own kite-flying tradition — used in the top strip */
+function DuckMascot() {
+  return (
+    <div className="duck-wrap">
+      <div className="duck-bubble">Order Now! 🛍️</div>
+      <img src="/duck-animation.gif" alt="Order now" className="duck-img" />
+      <style>{`
+        .duck-wrap {
+          position: absolute;
+          bottom: 90px;
+          left: 0;
+          width: 130px;
+          height: 130px;
+          pointer-events: none;
+          z-index: 40;
+          animation: duckWalk 12s linear infinite;
+        }
+        .duck-img {
+          width: 130px;
+          height: 130px;
+          object-fit: contain;
+          display: block;
+          animation: duckFlip 12s linear infinite;
+        }
+        .duck-bubble {
+          position: absolute;
+          top: -46px;
+          left: 50%;
+          transform: translateX(-50%) scale(0);
+          background: #FF6B4A;
+          color: #fff;
+          font-weight: 800;
+          font-size: 13px;
+          padding: 7px 12px;
+          border-radius: 12px;
+          white-space: nowrap;
+          box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+          animation: duckBubble 12s linear infinite;
+        }
+        .duck-bubble:after {
+          content: "";
+          position: absolute;
+          bottom: -6px;
+          left: 50%;
+          transform: translateX(-50%);
+          border-width: 6px 6px 0 6px;
+          border-style: solid;
+          border-color: #FF6B4A transparent transparent transparent;
+        }
+        @keyframes duckWalk {
+          0%   { left: 0%; }
+          28%  { left: calc(100% - 130px); }
+          35%  { left: calc(50% - 65px); }
+          65%  { left: calc(50% - 65px); }
+          72%  { left: 0%; }
+          100% { left: 0%; }
+        }
+        @keyframes duckFlip {
+          0%   { transform: scaleX(1); }
+          27%  { transform: scaleX(1); }
+          29%  { transform: scaleX(-1); }
+          64%  { transform: scaleX(-1); }
+          66%  { transform: scaleX(-1); }
+          71%  { transform: scaleX(1); }
+          100% { transform: scaleX(1); }
+        }
+        @keyframes duckBubble {
+          0%   { transform: translateX(-50%) scale(0); opacity: 0; }
+          33%  { transform: translateX(-50%) scale(0); opacity: 0; }
+          38%  { transform: translateX(-50%) scale(1.15); opacity: 1; }
+          42%  { transform: translateX(-50%) scale(1); opacity: 1; }
+          60%  { transform: translateX(-50%) scale(1); opacity: 1; }
+          65%  { transform: translateX(-50%) scale(0); opacity: 0; }
+          100% { transform: translateX(-50%) scale(0); opacity: 0; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 function TopBarNature() {
   return (
     <svg style={styles.topBarLeaf} viewBox="0 0 160 120" fill="none">
