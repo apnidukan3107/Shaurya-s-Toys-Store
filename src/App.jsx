@@ -389,6 +389,44 @@ export default function ApniDukanApp() {
     } catch {}
   }
 
+  async function flashSaleOneRupee() {
+    // Back up current prices first so they can be restored later — this
+    // is meant as a "today only" sale, not a permanent price change.
+    try {
+      const backup = {};
+      products.forEach((p) => { backup[p.id] = p.price; });
+      await storageSet("priceBackup", JSON.stringify(backup));
+      const next = products.map((p) => ({ ...p, price: 1 }));
+      setProducts(next);
+      await storageSet("products", JSON.stringify(next));
+      setProductStatus("✅ બધા ટોયના ભાવ ₹1 કરાયા (મૂળ ભાવ સેફ છે)");
+      setTimeout(() => setProductStatus(""), 4000);
+    } catch {
+      setProductStatus("⚠️ ભાવ બદલવામાં તકલીફ પડી");
+      setTimeout(() => setProductStatus(""), 3000);
+    }
+  }
+
+  async function restoreOriginalPrices() {
+    try {
+      const res = await storageGet("priceBackup");
+      if (!res) {
+        setProductStatus("⚠️ કોઈ બેકઅપ ભાવ મળ્યા નથી");
+        setTimeout(() => setProductStatus(""), 3000);
+        return;
+      }
+      const backup = JSON.parse(res.value);
+      const next = products.map((p) => (backup[p.id] != null ? { ...p, price: backup[p.id] } : p));
+      setProducts(next);
+      await storageSet("products", JSON.stringify(next));
+      setProductStatus("✅ મૂળ ભાવ પરત આવ્યા");
+      setTimeout(() => setProductStatus(""), 3000);
+    } catch {
+      setProductStatus("⚠️ ભાવ પરત લાવવામાં તકલીફ પડી");
+      setTimeout(() => setProductStatus(""), 3000);
+    }
+  }
+
   async function seedSampleProducts() {
     const existingNames = new Set(products.map((p) => p.name));
     const toAdd = SAMPLE_PRODUCTS.filter((sp) => !existingNames.has(sp.name)).map((sp) => ({
@@ -1151,6 +1189,20 @@ export default function ApniDukanApp() {
                   🧸 નમૂના પ્રોડક્ટ્સ (12) ઉમેરો
                 </button>
               )}
+              <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                <button
+                  style={{ ...styles.primaryBtn, flex: 1, background: "#FF6B4A" }}
+                  onClick={flashSaleOneRupee}
+                >
+                  🔥 આજ માટે બધા ₹1
+                </button>
+                <button
+                  style={{ ...styles.primaryBtn, flex: 1, background: T.surface2, color: T.inkSoft, boxShadow: "none" }}
+                  onClick={restoreOriginalPrices}
+                >
+                  ↩️ મૂળ ભાવ પરત
+                </button>
+              </div>
               <input
                 style={styles.textInput}
                 placeholder="પ્રોડક્ટનું નામ"
@@ -1481,38 +1533,42 @@ function DuckMascot() {
         }
         @keyframes duckWalk {
           0%   { left: 0%; }
-          18%  { left: calc(50% - 65px); }
-          32%  { left: calc(50% - 65px); }
-          50%  { left: calc(100% - 130px); }
-          54%  { left: calc(100% - 130px); }
-          68%  { left: calc(50% - 65px); }
-          82%  { left: calc(50% - 65px); }
+          14%  { left: calc(50% - 65px); }
+          24%  { left: calc(50% - 65px); }
+          38%  { left: 100%; }
+          43%  { left: 100%; }
+          48%  { left: calc(100% - 130px); }
+          62%  { left: calc(50% - 65px); }
+          72%  { left: calc(50% - 65px); }
+          86%  { left: -130px; }
+          91%  { left: -130px; }
+          96%  { left: 0%; }
           100% { left: 0%; }
         }
         @keyframes duckFlip {
           0%   { transform: scaleX(1); }
-          31%  { transform: scaleX(1); }
-          33%  { transform: scaleX(1); }
-          49%  { transform: scaleX(1); }
-          51%  { transform: scaleX(-1); }
-          81%  { transform: scaleX(-1); }
-          83%  { transform: scaleX(-1); }
-          97%  { transform: scaleX(-1); }
-          99%  { transform: scaleX(1); }
+          23%  { transform: scaleX(1); }
+          25%  { transform: scaleX(1); }
+          47%  { transform: scaleX(1); }
+          49%  { transform: scaleX(-1); }
+          71%  { transform: scaleX(-1); }
+          73%  { transform: scaleX(-1); }
+          95%  { transform: scaleX(-1); }
+          97%  { transform: scaleX(1); }
           100% { transform: scaleX(1); }
         }
         @keyframes duckBubble {
           0%   { transform: translateX(-50%) scale(0); opacity: 0; }
-          16%  { transform: translateX(-50%) scale(0); opacity: 0; }
-          19%  { transform: translateX(-50%) scale(1.15); opacity: 1; }
-          22%  { transform: translateX(-50%) scale(1); opacity: 1; }
-          29%  { transform: translateX(-50%) scale(1); opacity: 1; }
-          32%  { transform: translateX(-50%) scale(0); opacity: 0; }
-          66%  { transform: translateX(-50%) scale(0); opacity: 0; }
-          69%  { transform: translateX(-50%) scale(1.15); opacity: 1; }
-          72%  { transform: translateX(-50%) scale(1); opacity: 1; }
-          79%  { transform: translateX(-50%) scale(1); opacity: 1; }
-          82%  { transform: translateX(-50%) scale(0); opacity: 0; }
+          12%  { transform: translateX(-50%) scale(0); opacity: 0; }
+          15%  { transform: translateX(-50%) scale(1.15); opacity: 1; }
+          18%  { transform: translateX(-50%) scale(1); opacity: 1; }
+          23%  { transform: translateX(-50%) scale(1); opacity: 1; }
+          25%  { transform: translateX(-50%) scale(0); opacity: 0; }
+          60%  { transform: translateX(-50%) scale(0); opacity: 0; }
+          63%  { transform: translateX(-50%) scale(1.15); opacity: 1; }
+          66%  { transform: translateX(-50%) scale(1); opacity: 1; }
+          71%  { transform: translateX(-50%) scale(1); opacity: 1; }
+          73%  { transform: translateX(-50%) scale(0); opacity: 0; }
           100% { transform: translateX(-50%) scale(0); opacity: 0; }
         }
       `}</style>
