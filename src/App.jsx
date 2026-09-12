@@ -482,11 +482,115 @@ export default function ApniDukanApp() {
 
   function handleProductImageFile(file) {
     if (!file) return;
+    // Compress before storing — phone camera photos can be several MB, and
+    // ALL products live inside one Firestore document (1MB hard limit), so
+    // an uncompressed photo silently breaks saving for the whole catalog.
+    // Resizing to a small max dimension + JPEG compression keeps each photo
+    // tiny (usually 20-60KB) while still looking fine on product cards.
     const reader = new FileReader();
     reader.onload = () => {
-      setNewProduct((f) => ({ ...f, image: reader.result }));
+      const img = new Image();
+      img.onload = () => {
+        const maxDim = 700;
+        let { width, height } = img;
+        if (width > height && width > maxDim) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        } else if (height > maxDim) {
+          width = Math.round((width * maxDim) / height);
+          height = maxDim;
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressed = canvas.toDataURL("image/jpeg", 0.7);
+        setNewProduct((f) => ({ ...f, image: compressed }));
+      };
+      img.onerror = () => {
+        // Fallback: still save the original if compression somehow fails
+        setNewProduct((f) => ({ ...f, image: reader.result }));
+      };
+      img.src = reader.result;
     };
     reader.readAsDataURL(file);
+  }
+
+  // ---- Bulk add: multiple products at once ----
+  const emptyBulkRow = () => ({ name: "", price: "", stock: "", category: CATEGORIES_DEFAULT[0], image: "", img: "🛍️" });
+  const [bulkRows, setBulkRows] = useState([emptyBulkRow(), emptyBulkRow(), emptyBulkRow()]);
+  const [bulkAddStatus, setBulkAddStatus] = useState("");
+  const [showBulkAdd, setShowBulkAdd] = useState(false);
+
+  function updateBulkRow(idx, field, value) {
+    setBulkRows((rows) => rows.map((r, i) => (i === idx ? { ...r, [field]: value } : r)));
+  }
+
+  function handleBulkRowImageFile(idx, file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const maxDim = 700;
+        let { width, height } = img;
+        if (width > height && width > maxDim) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        } else if (height > maxDim) {
+          width = Math.round((width * maxDim) / height);
+          height = maxDim;
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressed = canvas.toDataURL("image/jpeg", 0.7);
+        updateBulkRow(idx, "image", compressed);
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function addBulkRow() {
+    setBulkRows((rows) => (rows.length >= 10 ? rows : [...rows, emptyBulkRow()]));
+  }
+
+  function removeBulkRow(idx) {
+    setBulkRows((rows) => rows.filter((_, i) => i !== idx));
+  }
+
+  async function saveBulkProducts() {
+    const validRows = bulkRows.filter((r) => r.name.trim() && r.price);
+    if (validRows.length === 0) {
+      setBulkAddStatus("⚠️ ઓછામાં ઓછું એક પ્રોડક્ટનું નામ અને ભાવ ભરો");
+      setTimeout(() => setBulkAddStatus(""), 3000);
+      return;
+    }
+    setBulkAddStatus("સેવ થાય છે...");
+    try {
+      const newItems = validRows.map((r) => ({
+        id: uid("p"),
+        name: r.name.trim(),
+        category: r.category,
+        price: Number(r.price),
+        img: r.img || "🛍️",
+        image: r.image || undefined,
+        stock: r.stock === "" ? undefined : Number(r.stock),
+      }));
+      const next = [...newItems, ...products];
+      setProducts(next);
+      await storageSet("products", JSON.stringify(next));
+      setBulkAddStatus(`✅ ${newItems.length} પ્રોડક્ટ ઉમેરાયા`);
+      setBulkRows([emptyBulkRow(), emptyBulkRow(), emptyBulkRow()]);
+      setTimeout(() => setBulkAddStatus(""), 3000);
+    } catch {
+      setBulkAddStatus("⚠️ સેવ કરવામાં તકલીફ પડી");
+      setTimeout(() => setBulkAddStatus(""), 3000);
+    }
   }
 
   async function deleteProduct(id) {
@@ -938,6 +1042,93 @@ export default function ApniDukanApp() {
                       </button>
                     </div>
                   ))}
+                </div>
+              )}
+
+              <button
+                style={{ ...styles.adminSectionTitle, width: "100%", background: "none", border: "none", cursor: "pointer", justifyContent: "space-between", display: "flex", alignItems: "center", marginTop: 24 }}
+                onClick={() => setShowBulkAdd((v) => !v)}
+              >
+                <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <Package size={16} /> ઘણા પ્રોડક્ટ્સ એકસાથે ઉમેરો
+                </span>
+                <span style={{ fontSize: 11.5, color: T.inkSoft, fontWeight: 600 }}>
+                  {showBulkAdd ? "છુપાવો ▲" : "ખોલો ▼"}
+                </span>
+              </button>
+              {showBulkAdd && (
+                <div style={{ marginBottom: 16 }}>
+                  {bulkRows.map((row, idx) => (
+                    <div key={idx} style={{ border: `1px solid ${T.hairline || "#e5ddd0"}`, borderRadius: 10, padding: 10, marginBottom: 8 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                        <span style={{ fontSize: 11.5, fontWeight: 700, color: T.inkSoft }}>પ્રોડક્ટ #{idx + 1}</span>
+                        {bulkRows.length > 1 && (
+                          <button onClick={() => removeBulkRow(idx)} style={{ background: "none", border: "none", cursor: "pointer" }} aria-label="કાઢી નાખો">
+                            <X size={14} color="#b23b3b" />
+                          </button>
+                        )}
+                      </div>
+                      <input
+                        placeholder="નામ"
+                        value={row.name}
+                        onChange={(e) => updateBulkRow(idx, "name", e.target.value)}
+                        style={{ width: "100%", marginBottom: 6, padding: 8, borderRadius: 8, border: `1px solid ${T.hairline || "#e5ddd0"}` }}
+                      />
+                      <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>
+                        <input
+                          placeholder="ભાવ (₹)"
+                          type="number"
+                          value={row.price}
+                          onChange={(e) => updateBulkRow(idx, "price", e.target.value)}
+                          style={{ flex: 1, padding: 8, borderRadius: 8, border: `1px solid ${T.hairline || "#e5ddd0"}` }}
+                        />
+                        <input
+                          placeholder="સ્ટોક"
+                          type="number"
+                          value={row.stock}
+                          onChange={(e) => updateBulkRow(idx, "stock", e.target.value)}
+                          style={{ flex: 1, padding: 8, borderRadius: 8, border: `1px solid ${T.hairline || "#e5ddd0"}` }}
+                        />
+                      </div>
+                      <select
+                        value={row.category}
+                        onChange={(e) => updateBulkRow(idx, "category", e.target.value)}
+                        style={{ width: "100%", marginBottom: 6, padding: 8, borderRadius: 8, border: `1px solid ${T.hairline || "#e5ddd0"}` }}
+                      >
+                        {CATEGORIES_DEFAULT.concat(customCategories).map((c) => (
+                          <option key={c} value={c}>{c}</option>
+                        ))}
+                      </select>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <label style={{ ...styles.primaryBtn, background: T.surface2, color: T.inkSoft, boxShadow: "none", fontSize: 12, padding: "8px 10px", cursor: "pointer", margin: 0 }}>
+                          <ImagePlus size={14} style={{ marginRight: 4 }} />
+                          {row.image ? "ફોટો બદલો" : "ફોટો ઉમેરો"}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            style={{ display: "none" }}
+                            onChange={(e) => handleBulkRowImageFile(idx, e.target.files && e.target.files[0])}
+                          />
+                        </label>
+                        {row.image && (
+                          <img src={row.image} alt="preview" style={{ width: 36, height: 36, objectFit: "cover", borderRadius: 6, border: `1px solid ${T.hairline || "#e5ddd0"}` }} />
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+                    <button
+                      onClick={addBulkRow}
+                      disabled={bulkRows.length >= 10}
+                      style={{ ...styles.primaryBtn, flex: 1, background: T.surface2, color: T.inkSoft, boxShadow: "none", opacity: bulkRows.length >= 10 ? 0.5 : 1 }}
+                    >
+                      + વધુ પ્રોડક્ટ ({bulkRows.length}/10)
+                    </button>
+                    <button onClick={saveBulkProducts} style={{ ...styles.primaryBtn, flex: 1 }}>
+                      બધા સેવ કરો
+                    </button>
+                  </div>
+                  {bulkAddStatus && <p style={{ fontSize: 12, marginTop: 6, fontWeight: 700 }}>{bulkAddStatus}</p>}
                 </div>
               )}
 
