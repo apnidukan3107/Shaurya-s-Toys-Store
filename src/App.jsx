@@ -7,6 +7,13 @@ import {
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
 
+// ============ GOOGLE ANALYTICS 4 TRACKING (MINIMAL) ============
+const trackGA = (eventName, eventData = {}) => {
+  if (window.gtag) {
+    window.gtag('event', eventName, eventData);
+  }
+};
+
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyCc3Biv2uVjzDTFPr9ouFe2WL-KAw1ieOA",
@@ -236,6 +243,14 @@ export default function ApniDukanApp() {
     })();
   }, []);
 
+  // GA: Track page view on mount
+  useEffect(() => {
+    trackGA('page_view', {
+      page_title: 'Shaurya\'s Toys Store',
+      page_location: window.location.href
+    });
+  }, []);
+
   // Live orders — real-time Firestore listener so every new order shows up
   // in the admin panel immediately, on any device, without a manual refresh.
   useEffect(() => {
@@ -301,6 +316,15 @@ export default function ApniDukanApp() {
 
   function addToCart(id) {
     setCart((prev) => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
+    // GA: Track add to cart
+    const product = products.find(p => p.id === id);
+    if (product) {
+      trackGA('add_to_cart', {
+        currency: 'INR',
+        value: product.price,
+        items: [{ item_id: product.id, item_name: product.name, price: product.price }]
+      });
+    }
   }
   function decFromCart(id) {
     setCart((prev) => {
@@ -329,15 +353,28 @@ export default function ApniDukanApp() {
     }
     setCheckoutError("");
     setSaving(true);
+    const totalWithDelivery = cartTotal + (cartTotal > 999 ? 0 : 49);
     const order = {
       id: uid("ord"),
       items: cartItems.map((i) => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
-      total: cartTotal + (cartTotal > 999 ? 0 : 49),
+      total: totalWithDelivery,
       customer: { ...checkoutForm },
       payment: "કેશ ઓન ડિલિવરી",
       status: "નવો",
       createdAt: new Date().toISOString(),
     };
+    // GA: Track purchase with revenue
+    trackGA('purchase', {
+      transaction_id: order.id,
+      currency: 'INR',
+      value: totalWithDelivery,
+      items: cartItems.map(i => ({
+        item_id: i.id,
+        item_name: i.name,
+        price: i.price,
+        quantity: i.qty
+      }))
+    });
     try {
       let freshOrders = orders;
       try {
@@ -731,7 +768,14 @@ export default function ApniDukanApp() {
                 style={styles.searchInput}
                 placeholder="પ્રોડક્ટ શોધો..."
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => {
+                  const q = e.target.value;
+                  setQuery(q);
+                  // GA: Track search
+                  if (q.trim()) {
+                    trackGA('search', { search_term: q });
+                  }
+                }}
               />
             </div>
             <div style={styles.catRow}>
