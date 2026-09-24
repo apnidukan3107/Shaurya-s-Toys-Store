@@ -4,8 +4,11 @@ import {
   Settings, Package, ClipboardList, Trash2, Lock, Loader2,
   Pencil, ImagePlus, Tag
 } from "lucide-react";
+// ✅ VERCEL ANALYTICS - Real-time visitor tracking
+import { Analytics } from "@vercel/analytics/react";
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
+import { getAnalytics, logEvent } from "firebase/analytics";
 
 // ============ GOOGLE ANALYTICS 4 TRACKING (MINIMAL) ============
 const trackGA = (eventName, eventData = {}) => {
@@ -27,6 +30,8 @@ const firebaseConfig = {
 
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
+// ✅ FIREBASE ANALYTICS - For revenue tracking
+const analytics = getAnalytics(firebaseApp);
 // Note: photos are saved as base64 directly inside the Firestore product
 // document (no Firebase Storage / Blaze plan needed) — same approach as
 // the apni-dukan project. Firestore documents cap at 1MB, which is plenty
@@ -375,6 +380,19 @@ export default function ApniDukanApp() {
         quantity: i.qty
       }))
     });
+    
+    // ✅ FIREBASE ANALYTICS - Real-time revenue tracking in INR
+    logEvent(analytics, 'purchase', {
+      transaction_id: order.id,
+      value: totalWithDelivery,
+      currency: 'INR',
+      items: cartItems.map(i => ({
+        item_name: i.name,
+        item_id: i.id,
+        price: i.price,
+        quantity: i.qty
+      }))
+    });
     try {
       let freshOrders = orders;
       try {
@@ -689,6 +707,8 @@ export default function ApniDukanApp() {
 
   return (
     <div style={styles.appShell} className="app-shell">
+      {/* ✅ VERCEL ANALYTICS - Real-time traffic & performance monitoring */}
+      <Analytics />
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Hind+Vadodara:wght@400;500;600;700&family=Noto+Sans+Gujarati:wght@400;600;700;800&display=swap" rel="stylesheet" />
       <style>{`
