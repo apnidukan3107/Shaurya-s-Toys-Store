@@ -41,8 +41,25 @@ const analytics = getAnalytics(firebaseApp);
 // is stored as one document inside the "store" collection, matching the
 // Firestore security rules from the README (match /store/{docId}).
 async function storageGet(key) {
-  const snap = await getDoc(doc(db, "store", key));
-  return snap.exists() ? { value: snap.data().value } : null;
+  try {
+    const snap = await getDoc(doc(db, "store", key));
+    if (snap.exists()) {
+      const data = snap.data();
+      if (data && data.value) {
+        console.log(`✅ storageGet('${key}') success`);
+        return { value: data.value };
+      } else {
+        console.warn(`⚠️ storageGet('${key}'): document exists but no value field`, data);
+        return null;
+      }
+    } else {
+      console.warn(`⚠️ storageGet('${key}'): document does not exist`);
+      return null;
+    }
+  } catch (e) {
+    console.error(`❌ storageGet('${key}') error:`, e);
+    return null;
+  }
 }
 async function storageSet(key, value) {
   await setDoc(doc(db, "store", key), { value });
@@ -55,10 +72,20 @@ function storageListen(key, onChange) {
   return onSnapshot(
     doc(db, "store", key),
     (snap) => {
-      if (snap.exists()) onChange(snap.data().value);
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data && data.value) {
+          onChange(data.value);
+        } else {
+          console.warn(`⚠️ Document '${key}' exists but has no 'value' field`, data);
+          onChange("");
+        }
+      } else {
+        console.warn(`⚠️ Document '${key}' does not exist in Firestore`);
+      }
     },
     (err) => {
-      console.error("storageListen error for", key, err);
+      console.error(`❌ storageListen error for '${key}':`, err);
     }
   );
 }
@@ -217,8 +244,14 @@ export default function ApniDukanApp() {
         try {
           const res = await Promise.race([storageGet("products"), timeout(8000)]);
           prod = res ? JSON.parse(res.value) : [];
+          console.log("✅ Products loaded from Firestore:", prod.length, "products");
         } catch (e) {
-          if (e && e.message === "timeout") timedOut = true;
+          if (e && e.message === "timeout") {
+            timedOut = true;
+            console.error("⚠️ Products load timeout");
+          } else {
+            console.error("❌ Products load error:", e.message);
+          }
           prod = [];
         }
         // Note: we never auto-fill with demo/placeholder products here.
@@ -231,6 +264,7 @@ export default function ApniDukanApp() {
         try {
           const res3 = await Promise.race([storageGet("customCategories"), timeout(8000)]);
           cats = res3 ? JSON.parse(res3.value) : [];
+          console.log("✅ Categories loaded:", cats.length);
         } catch (e) {
           if (e && e.message === "timeout") timedOut = true;
           cats = [];
@@ -241,6 +275,7 @@ export default function ApniDukanApp() {
           setLoadError("ડેટાબેઝ સાથે કનેક્ટ થવામાં તકલીફ થઈ (નેટવર્ક ધીમું અથવા બ્લોક છે). હાલ પુરાણું/ડિફોલ્ટ કેટલોગ બતાવ્યું છે — ફરી પ્રયત્ન કરો.");
         }
       } catch (e) {
+        console.error("❌ Data load error:", e);
         setLoadError("ડેટા લોડ કરવામાં તકલીફ થઈ. ફરી પ્રયત્ન કરો.");
       } finally {
         setLoading(false);
@@ -279,10 +314,21 @@ export default function ApniDukanApp() {
     const unsubscribe = storageListen("products", (rawValue) => {
       try {
         const fresh = JSON.parse(rawValue) || [];
-        if (fresh.length > 0) setProducts(fresh);
-      } catch {}
+        console.log("🔄 Real-time products update:", fresh.length, "products");
+        if (fresh.length > 0) {
+          setProducts(fresh);
+          console.log("✅ Products updated in real-time");
+        } else {
+          console.warn("⚠️ Received empty products array");
+        }
+      } catch (e) {
+        console.error("❌ Error parsing products:", e);
+      }
     });
-    return () => unsubscribe();
+    return () => {
+      console.log("🔌 Unsubscribing from products listener");
+      unsubscribe();
+    };
   }, []);
 
   const categories = useMemo(() => {
